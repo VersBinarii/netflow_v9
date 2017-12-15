@@ -1,0 +1,8 @@
+[package]
+name = "netflow_v9"
+version = "0.1.0"
+authors = ["Krzysztof Grobelak <krzysztof.grobelak@gmail.com>"]
+
+[dependencies]
+nom = "3.2"
+byteorder = "1.2"
