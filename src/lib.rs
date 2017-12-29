@@ -108,14 +108,24 @@ impl Parser {
     ) -> Result<Vec<DataFlowset>, &'static str> {
         //20 bytes Netflow packet header
         let mut data = packet;
+
         if let Done(buffer, header) = parse_netflow_header(data) {
+
+            match header.version {
+                9 => {},
+                _ => {
+                    return Err("Unrecognized version")
+                }
+            }
+            
             data = buffer;
+
             let mut flowset_count = header.count;
             let mut data_flowsets = Vec::<DataFlowset>::new();
             loop {
                 if let Done(buffer, tl_header) = parse_tl_header(data) {
                     data = buffer;
-
+                    
                     match tl_header.flowset_id {
                         // We have a template
                         0 => {
@@ -173,10 +183,11 @@ impl Parser {
                             } else if self.options_cache.contains_key(&tl_header.flowset_id) {
                                 data = &data[(tl_header.length - 4) as usize..];
                             } else {
-                                println!("{}", "Template missing - skipping this dataflow");
+                                data = &data[(tl_header.length - 4) as usize..];
                             }
                         }
                     }
+                    // we failed to parse it so just try another one
                     flowset_count -= 1;
 
                     if flowset_count == 0 {
@@ -360,5 +371,6 @@ fn parse_dataset<'a>(
             records: records,
         })
     }
-    Ok((&buffer[idx..], dataflows))
+    // Adjust for possible remaining padding
+    Ok((&buffer[length..], dataflows))
 }
