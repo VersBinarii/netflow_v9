@@ -28,40 +28,40 @@ struct TypeLenHeader {
     length: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TemplateHeader {
     template_id: u16,
     field_count: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TemplateField {
     field: u16,
     len: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TemplateFlowset {
     tl_header: TypeLenHeader,
     template_header: TemplateHeader,
     payload: Vec<TemplateField>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct OptionTemplateHeader {
     template_id: u16,
     scope_len: u16,
     option_len: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct OptionTemplate {
     tl_header: TypeLenHeader,
     options_template_header: OptionTemplateHeader,
     payload: Vec<TemplateField>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataFlowset<'a> {
     tl_header: TypeLenHeader,
     records: HashMap<u16, &'a [u8]>,
@@ -89,6 +89,7 @@ impl<'a> DataFlowset<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct Parser {
     template_cache: HashMap<u16, TemplateFlowset>,
     options_cache: HashMap<u16, OptionTemplate>,
@@ -102,10 +103,10 @@ impl Parser {
         }
     }
 
-    pub fn parse_netflow_packet<'a>(
+    pub fn parse_netflow_packet<'a, 'b>(
         &'a mut self,
-        packet: &'a [u8],
-    ) -> Result<Vec<DataFlowset>, &'static str> {
+        packet: &'b [u8],
+    ) -> Result<Vec<DataFlowset<'b>>, &'static str> {
         //20 bytes Netflow packet header
         let mut data = packet;
 
