@@ -63,6 +63,7 @@ struct OptionTemplate {
 
 #[derive(Debug, Clone)]
 pub struct DataFlowset<'a> {
+    source_ip: Option<&'a std::net::SocketAddr>,
     tl_header: TypeLenHeader,
     records: HashMap<u16, &'a [u8]>,
 }
@@ -72,6 +73,11 @@ impl<'a> DataFlowset<'a> {
         let mut json = String::new();
         json += "{";
         json += "\"header\": {";
+        if let Some(ip) = self.source_ip {
+            let ip = ip.to_string();
+            let ip: Vec<_> = ip.split(":").collect();
+            json += format!("\"source\": \"{}\",", ip[0]).as_str();
+        }
         json += format!("\"flowset_id\": \"{}\",", self.tl_header.flowset_id).as_str();
         json += format!("\"length\": \"{}\"", self.tl_header.length).as_str();
         json += "},\"records\": {";
@@ -86,6 +92,10 @@ impl<'a> DataFlowset<'a> {
         }
         json += "}}\n";
         json
+    }
+
+    fn set_source_ip(&mut self, addr: &'a std::net::SocketAddr) {
+        self.source_ip = Some(addr)
     }
 }
 
@@ -106,6 +116,7 @@ impl Parser {
     pub fn parse_netflow_packet<'a, 'b>(
         &'a mut self,
         packet: &'b [u8],
+        addr: &'b std::net::SocketAddr
     ) -> Result<Vec<DataFlowset<'b>>, &'static str> {
         //20 bytes Netflow packet header
         let mut data = packet;
@@ -175,7 +186,8 @@ impl Parser {
                                     parse_dataset(data, tl_header, &template)
                                 {
                                     data = buffer;
-                                    for f in flowsets {
+                                    for mut f in flowsets {
+                                        f.set_source_ip(addr);
                                         data_flowsets.push(f);
                                     }
                                 } else {
@@ -368,6 +380,7 @@ fn parse_dataset<'a>(
             idx += f.len as usize;
         }
         dataflows.push(DataFlowset {
+            source_ip: None,
             tl_header: tl_header,
             records: records,
         })

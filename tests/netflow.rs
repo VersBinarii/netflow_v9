@@ -4,6 +4,7 @@ mod tests {
 
     use std::fs::File;
     use std::io::Read;
+    use std::net::SocketAddr;
     
     use self::netflow_v9::Parser;
     
@@ -50,10 +51,12 @@ mod tests {
 
         let mut parser = Parser::new();
 
-        if let Ok(sets) = parser.parse_netflow_packet(&packet_1) {
+        let addr: SocketAddr = "192.168.1.1:0".parse().unwrap();
+        
+        if let Ok(sets) = parser.parse_netflow_packet(&packet_1, &addr) {
             for set in sets {
                 let s = set.to_json();
-                println!("{}",s);
+                
                 assert!(s.contains("\"BGP IPv4 Next Hop\": \"185.167.196.126\""));
                 assert!(s.contains("\"IPv4 Src Addr\": \"185.167.196.127\""));
                 assert!(s.contains("\"ICMP type\": \"0\""));
@@ -81,12 +84,14 @@ mod tests {
                 assert!(s.contains("\"InBytes\": \"52\""));
                 assert!(s.contains("\"Output SNMP\": \"276\""));
                 assert!(s.contains("\"Src Tos\": \"192\""));
+                assert!(s.contains("\"source\": \"192.168.1.1\""));
             }
         }
         
-        if let Ok(sets) = parser.parse_netflow_packet(&packet_2) {
+        if let Ok(sets) = parser.parse_netflow_packet(&packet_2, &addr) {
             for set in sets {
                 let s = set.to_json();
+
                 assert!(s.contains("\"BGP IPv4 Next Hop\": \"0.0.0.0\""));
                 assert!(s.contains("\"Forwarding Status\": \"66\""));
                 assert!(s.contains("\"IPv4 Next Hop\": \"0.0.0.0\""));
