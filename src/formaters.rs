@@ -1,5 +1,16 @@
 use byteorder::{BigEndian, ReadBytesExt};
 
+static TCP_FLAGS: [(u8, &str); 8] = [
+    (0x01, "FIN"),
+    (0x02, "SYN"),
+    (0x04, "RST"),
+    (0x08, "PSH"),
+    (0x10, "ACK"),
+    (0x20, "URG"),
+    (0x40, "ECE"),
+    (0x08, "CWR")
+];
+
 pub fn fmt_ipv4(b: &[u8]) -> String {
     format!(r#""{}.{}.{}.{}""#, b[0], b[1], b[2], b[3])
 }
@@ -54,4 +65,23 @@ pub fn fmt_int(mut b: &[u8]) -> String {
     };
 
     format!("\"{}\"", val)
+}
+
+pub fn fmt_tcp_flags(b: &[u8]) -> String {
+    let mut res = String::new();
+    for e in TCP_FLAGS.iter() {
+        if b[0] & e.0 == e.0 {
+            res.push_str(e.1);
+            res.push('-');
+        }
+    }
+    if res.is_empty() {
+        res.push_str("None");
+    }
+
+    if res.ends_with('-') {
+        res.pop();
+    }
+    
+    format!("\"{}\"", res)
 }

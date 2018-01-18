@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::formaters::{fmt_int, fmt_ipv4, fmt_ipv6};
+use super::formaters::{fmt_int, fmt_ipv4, fmt_ipv6, fmt_tcp_flags};
 
 pub enum TemplateFieldType {
     InBytes(&'static str, fn(&[u8]) -> String),
@@ -195,7 +195,7 @@ impl From<u16> for TemplateFieldType {
             3 => TemplateFieldType::Flows("Flows", fmt_int),
             4 => TemplateFieldType::Protocol("Protocol", fmt_int),
             5 => TemplateFieldType::SrcTos("Src Tos", fmt_int),
-            6 => TemplateFieldType::TCPFlags("TCP Flags", fmt_int),
+            6 => TemplateFieldType::TCPFlags("TCP Flags", fmt_tcp_flags),
             7 => TemplateFieldType::L4SrcPort("L4 Src port", fmt_int),
             8 => TemplateFieldType::IPv4SrcAddr("IPv4 Src Addr", fmt_ipv4),
             9 => TemplateFieldType::SrcMask("Src Mask", fmt_int),

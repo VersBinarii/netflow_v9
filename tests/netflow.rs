@@ -76,7 +76,7 @@ mod tests {
                 assert!(s.contains("\"IPv4 Next Hop\": \"0.0.0.0\""));
                 assert!(s.contains("\"Src AS\": \"207044\""));
                 assert!(s.contains("\"IP Proto version\": \"4\""));
-                assert!(s.contains("\"TCP Flags\": \"0\""));
+                assert!(s.contains("\"TCP Flags\": \"None\""));
                 assert!(s.contains("\"ICMP type\": \"0\""));
                 assert!(s.contains("\"InBytes\": \"52\""));
                 assert!(s.contains("\"Output SNMP\": \"276\""));
@@ -105,7 +105,7 @@ mod tests {
                 assert!(s.contains("\"Input SNMP\": \"0\""));
                 assert!(s.contains("\"ICMP type\": \"0\""));
                 assert!(s.contains("\"Last Switched\": \"1668894188\""));
-                assert!(s.contains("\"TCP Flags\": \"0\""));
+                assert!(s.contains("\"TCP Flags\": \"None\""));
                 assert!(s.contains("\"IPv6 Flow Label\": \"0\""));
                 assert!(s.contains("\"IPv6 Src Mask\": \"128\""));
                 assert!(s.contains("\"Src Tos\": \"192\""));
