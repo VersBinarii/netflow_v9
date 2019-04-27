@@ -1,15 +1,12 @@
 #[macro_use]
 extern crate nom;
-
 extern crate byteorder;
 
-mod templates;
 mod formaters;
-
-use std::collections::HashMap;
+mod templates;
 
 use nom::IResult::Done;
-
+use std::collections::HashMap;
 use templates::TemplateFieldType;
 
 #[derive(Debug)]
@@ -116,20 +113,17 @@ impl Parser {
     pub fn parse_netflow_packet<'a, 'b>(
         &'a mut self,
         packet: &'b [u8],
-        addr: &'b std::net::SocketAddr
+        addr: &'b std::net::SocketAddr,
     ) -> Result<Vec<DataFlowset<'b>>, &'static str> {
         //20 bytes Netflow packet header
         let mut data = packet;
 
         if let Done(buffer, header) = parse_netflow_header(data) {
-
             match header.version {
-                9 => {},
-                _ => {
-                    return Err("Unrecognized version")
-                }
+                9 => {}
+                _ => return Err("Unrecognized version"),
             }
-            
+
             data = buffer;
 
             let mut flowset_count = header.count;
@@ -137,12 +131,11 @@ impl Parser {
             loop {
                 if let Done(buffer, tl_header) = parse_tl_header(data) {
                     data = buffer;
-                    
+
                     match tl_header.flowset_id {
                         // We have a template
                         0 => {
-                            if let Ok((buffer, template_flowset)) =
-                                parse_template(data, tl_header)
+                            if let Ok((buffer, template_flowset)) = parse_template(data, tl_header)
                             {
                                 data = buffer;
                                 self.template_cache.insert(
@@ -161,12 +154,9 @@ impl Parser {
                             {
                                 data = buffer;
                                 self.options_cache.insert(
-                                    template_flowset
-                                        .options_template_header
-                                        .template_id,
+                                    template_flowset.options_template_header.template_id,
                                     template_flowset,
                                 );
-
                             } else {
                                 return Err("Failed to parse the options template");
                             }
@@ -175,13 +165,12 @@ impl Parser {
                         // A dataset
                         _ => {
                             if tl_header.flowset_id < 255 {
-                                return Err(("Flowset ID out of range"));
+                                return Err("Flowset ID out of range");
                             }
                             // Get the template fromthe cache
                             if self.template_cache.contains_key(&tl_header.flowset_id) {
-                                let template = {
-                                    self.template_cache.get(&tl_header.flowset_id).unwrap()
-                                };
+                                let template =
+                                    { self.template_cache.get(&tl_header.flowset_id).unwrap() };
                                 if let Ok((buffer, flowsets)) =
                                     parse_dataset(data, tl_header, &template)
                                 {
@@ -203,7 +192,7 @@ impl Parser {
                 }
                 // we failed to parse it so just try another one
                 flowset_count -= 1;
-                
+
                 if flowset_count == 0 {
                     return Ok(data_flowsets);
                 }
@@ -286,17 +275,14 @@ fn parse_template<'a>(
 
         for _ in 0..field_count {
             if let Done(bytes, template_field) = parse_template_fields(buffer) {
-
                 byte_count -= buffer.len() - bytes.len();
                 buffer = bytes;
                 template_fields.push(template_field);
-
             } else {
                 return Err(());
             }
         }
         if byte_count == 0 {
-
             // Looks like we parsed all fields so add the template if we dont have it already
             return Ok((
                 buffer,
@@ -318,7 +304,6 @@ fn parse_options_template<'a>(
     let mut template_fields: Vec<TemplateField> = Vec::new();
     let mut byte_count = 4; //Adjust for header length
     if let Done(bytes, template_header) = parse_option_template_header(buffer) {
-
         byte_count += buffer.len() - bytes.len();
         // Ensure the correct buffer is parsed
         buffer = bytes;
@@ -330,7 +315,6 @@ fn parse_options_template<'a>(
                 byte_count += buffer.len() - bytes.len();
                 buffer = bytes;
                 template_fields.push(template_field);
-
             } else {
                 return Err(());
             }
@@ -340,11 +324,9 @@ fn parse_options_template<'a>(
         let mut option_len = template_header.option_len / 4;
         for _ in 0..option_len {
             if let Done(bytes, template_field) = parse_template_fields(buffer) {
-
                 byte_count += buffer.len() - bytes.len();
                 buffer = bytes;
                 template_fields.push(template_field);
-
             } else {
                 return Err(());
             }

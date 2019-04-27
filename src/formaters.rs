@@ -8,7 +8,7 @@ static TCP_FLAGS: [(u8, &str); 8] = [
     (0x10, "ACK"),
     (0x20, "URG"),
     (0x40, "ECE"),
-    (0x08, "CWR")
+    (0x08, "CWR"),
 ];
 
 pub fn fmt_ipv4(b: &[u8]) -> String {
@@ -82,6 +82,6 @@ pub fn fmt_tcp_flags(b: &[u8]) -> String {
     if res.ends_with('-') {
         res.pop();
     }
-    
+
     format!("\"{}\"", res)
 }

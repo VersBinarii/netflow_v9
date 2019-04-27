@@ -85,7 +85,6 @@ pub enum TemplateFieldType {
 
 impl fmt::Display for TemplateFieldType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
         let enum_value = match *self {
             TemplateFieldType::InBytes(x, _) => x,
             TemplateFieldType::InPkts(x, _) => x,
@@ -136,7 +135,6 @@ impl fmt::Display for TemplateFieldType {
 
 impl TemplateFieldType {
     pub fn get_parser(&self) -> fn(&[u8]) -> String {
-
         match *self {
             TemplateFieldType::InBytes(_, f) => f,
             TemplateFieldType::InPkts(_, f) => f,
@@ -160,12 +158,18 @@ impl TemplateFieldType {
             TemplateFieldType::LastSwitched(_, f) => f,
             TemplateFieldType::FirstSwitched(_, f) => f,
 
+            TemplateFieldType::MinPktLength(_, f) => f,
+            TemplateFieldType::MaxPktLength(_, f) => f,
+
             TemplateFieldType::IPv6SrcAddr(_, f) => f,
             TemplateFieldType::IPv6DstAddr(_, f) => f,
             TemplateFieldType::IPv6SrcMask(_, f) => f,
             TemplateFieldType::IPv6DstMask(_, f) => f,
             TemplateFieldType::IPv6FlowLabel(_, f) => f,
             TemplateFieldType::ICMPType(_, f) => f,
+
+            TemplateFieldType::MinTTL(_, f) => f,
+            TemplateFieldType::MaxTTL(_, f) => f,
 
             TemplateFieldType::IPProtocolVersion(_, f) => f,
             TemplateFieldType::Direction(_, f) => f,
@@ -185,7 +189,6 @@ impl TemplateFieldType {
         }
     }
 }
-
 
 impl From<u16> for TemplateFieldType {
     fn from(field: u16) -> TemplateFieldType {
@@ -212,12 +215,17 @@ impl From<u16> for TemplateFieldType {
             21 => TemplateFieldType::LastSwitched("Last Switched", fmt_int),
             22 => TemplateFieldType::FirstSwitched("First switched", fmt_int),
 
+            25 => TemplateFieldType::MinPktLength("Min packet length", fmt_int),
+            26 => TemplateFieldType::MaxPktLength("Max packet length", fmt_int),
             27 => TemplateFieldType::IPv6SrcAddr("IPv6 Src Addr", fmt_ipv6),
             28 => TemplateFieldType::IPv6DstAddr("IPv6 Dst Addr", fmt_ipv6),
             29 => TemplateFieldType::IPv6SrcMask("IPv6 Src Mask", fmt_int),
             30 => TemplateFieldType::IPv6DstMask("IPv6 Dst Mask", fmt_int),
             31 => TemplateFieldType::IPv6FlowLabel("IPv6 Flow Label", fmt_int),
             32 => TemplateFieldType::ICMPType("ICMP type", fmt_int),
+
+            52 => TemplateFieldType::MinTTL("Min TTL", fmt_int),
+            53 => TemplateFieldType::MaxTTL("Max TTL", fmt_int),
 
             60 => TemplateFieldType::IPProtocolVersion("IP Proto version", fmt_int),
             61 => TemplateFieldType::Direction("Direction", fmt_int),
