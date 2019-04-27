@@ -198,7 +198,7 @@ impl Parser {
                 }
             }
         }
-        Err("Failer to parse header")
+        Err("Failed to parse header")
     }
 }
 
