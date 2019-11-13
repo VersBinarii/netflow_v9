@@ -261,9 +261,15 @@ impl From<u16> for TemplateFieldType {
             15 => TemplateFieldType::IPv4NextHop("IPv4 Next Hop", fmt_ipv4),
             16 => TemplateFieldType::SrcAS("Src AS", fmt_int),
             17 => TemplateFieldType::DstAS("Dst AS", fmt_int),
-            18 => TemplateFieldType::BgpIPv4NextHop("BGP IPv4 Next Hop", fmt_ipv4),
-            19 => TemplateFieldType::MulDstPkts("Multicast Dest Packets", fmt_int),
-            20 => TemplateFieldType::MulDstBytes("Multicast Dest Bytes", fmt_int),
+            18 => {
+                TemplateFieldType::BgpIPv4NextHop("BGP IPv4 Next Hop", fmt_ipv4)
+            }
+            19 => {
+                TemplateFieldType::MulDstPkts("Multicast Dest Packets", fmt_int)
+            }
+            20 => {
+                TemplateFieldType::MulDstBytes("Multicast Dest Bytes", fmt_int)
+            }
             21 => TemplateFieldType::LastSwitched("Last Switched", fmt_int),
             22 => TemplateFieldType::FirstSwitched("First switched", fmt_int),
             23 => TemplateFieldType::OutBytes("Outgoing bytes", fmt_int),
@@ -276,26 +282,54 @@ impl From<u16> for TemplateFieldType {
             30 => TemplateFieldType::IPv6DstMask("IPv6 Dst Mask", fmt_int),
             31 => TemplateFieldType::IPv6FlowLabel("IPv6 Flow Label", fmt_int),
             32 => TemplateFieldType::ICMPType("ICMP type", fmt_int),
-            33 => TemplateFieldType::MulIGMPType("Multicast IGMP type", fmt_int),
-            34 => TemplateFieldType::SamplingInterval("Sampling interval", fmt_int),
-            35 => TemplateFieldType::SamplingAlgorithm("Sampling algorithm", fmt_int),
-            36 => TemplateFieldType::FlowActiveTimeout("Flow active timeout", fmt_int),
-            37 => TemplateFieldType::FlowInactiveTimeout("Flow inactive timeout", fmt_int),
+            33 => {
+                TemplateFieldType::MulIGMPType("Multicast IGMP type", fmt_int)
+            }
+            34 => TemplateFieldType::SamplingInterval(
+                "Sampling interval",
+                fmt_int,
+            ),
+            35 => TemplateFieldType::SamplingAlgorithm(
+                "Sampling algorithm",
+                fmt_int,
+            ),
+            36 => TemplateFieldType::FlowActiveTimeout(
+                "Flow active timeout",
+                fmt_int,
+            ),
+            37 => TemplateFieldType::FlowInactiveTimeout(
+                "Flow inactive timeout",
+                fmt_int,
+            ),
             38 => TemplateFieldType::EngineType("Engine type", fmt_int),
             39 => TemplateFieldType::EngineID("Engine Id", fmt_int),
 
             52 => TemplateFieldType::MinTTL("Min TTL", fmt_int),
             53 => TemplateFieldType::MaxTTL("Max TTL", fmt_int),
 
-            60 => TemplateFieldType::IPProtocolVersion("IP Proto version", fmt_int),
+            60 => TemplateFieldType::IPProtocolVersion(
+                "IP Proto version",
+                fmt_int,
+            ),
             61 => TemplateFieldType::Direction("Direction", fmt_int),
             62 => TemplateFieldType::IPv6NextHop("IPv6 Next Hop", fmt_ipv6),
-            63 => TemplateFieldType::BgpIPv6NextHop("BGP IPv6 Next Hop", fmt_ipv6),
-            64 => TemplateFieldType::IPv6OptionHeaders("IPv6 Options header", fmt_int),
+            63 => {
+                TemplateFieldType::BgpIPv6NextHop("BGP IPv6 Next Hop", fmt_ipv6)
+            }
+            64 => TemplateFieldType::IPv6OptionHeaders(
+                "IPv6 Options header",
+                fmt_int,
+            ),
 
-            89 => TemplateFieldType::ForwardingStatus("Forwarding Status", fmt_int),
+            89 => TemplateFieldType::ForwardingStatus(
+                "Forwarding Status",
+                fmt_int,
+            ),
 
-            99 => TemplateFieldType::ReplicationFactor("Multicast replication factor", fmt_int),
+            99 => TemplateFieldType::ReplicationFactor(
+                "Multicast replication factor",
+                fmt_int,
+            ),
 
             _ => {
                 println!("Unknown fielt type: {}", field);

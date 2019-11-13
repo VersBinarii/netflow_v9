@@ -5,7 +5,6 @@ extern crate byteorder;
 mod formaters;
 mod templates;
 
-use nom::IResult::Done;
 use std::collections::HashMap;
 use templates::TemplateFieldType;
 
@@ -118,7 +117,7 @@ impl Parser {
         //20 bytes Netflow packet header
         let mut data = packet;
 
-        if let Done(buffer, header) = parse_netflow_header(data) {
+        if let Ok((buffer, header)) = parse_netflow_header(data) {
             match header.version {
                 9 => {}
                 _ => return Err("Unrecognized version"),
@@ -129,17 +128,20 @@ impl Parser {
             let mut flowset_count = header.count;
             let mut data_flowsets = Vec::<DataFlowset>::new();
             loop {
-                if let Done(buffer, tl_header) = parse_tl_header(data) {
+                if let Ok((buffer, tl_header)) = parse_tl_header(data) {
                     data = buffer;
 
                     match tl_header.flowset_id {
                         // We have a template
                         0 => {
-                            if let Ok((buffer, template_flowset)) = parse_template(data, tl_header)
+                            if let Ok((buffer, template_flowset)) =
+                                parse_template(data, tl_header)
                             {
                                 data = buffer;
                                 self.template_cache.insert(
-                                    template_flowset.template_header.template_id,
+                                    template_flowset
+                                        .template_header
+                                        .template_id,
                                     template_flowset,
                                 );
                             } else {
@@ -203,11 +205,11 @@ impl Parser {
 }
 
 named!(parse_netflow_header<&[u8], NetflowHeader>, do_parse!(
-    version_and_count: bits!(tuple!(take_bits!(u16, 16), take_bits!(u16, 16))) >>
-        uptime: bits!(take_bits!(u32, 32)) >>
-        timestamp: bits!(take_bits!(u32, 32)) >>
-        seq: bits!(take_bits!(u32, 32)) >>
-        source_id: bits!(take_bits!(u32, 32)) >>
+    version_and_count: bits!(tuple!(take_bits!(16u16), take_bits!(16u16))) >>
+        uptime: bits!(take_bits!(32u32)) >>
+        timestamp: bits!(take_bits!(32u32)) >>
+        seq: bits!(take_bits!(32u32)) >>
+        source_id: bits!(take_bits!(32u32)) >>
         (NetflowHeader {
             version: version_and_count.0,
             count: version_and_count.1,
@@ -219,8 +221,8 @@ named!(parse_netflow_header<&[u8], NetflowHeader>, do_parse!(
 ));
 
 named!(parse_tl_header<&[u8], TypeLenHeader>, do_parse!(
-    flowset_id: bits!(take_bits!(u16, 16)) >>
-        length: bits!(take_bits!(u16, 16)) >>
+    flowset_id: bits!(take_bits!(16u16)) >>
+        length: bits!(take_bits!(16u16)) >>
         (TypeLenHeader {
             flowset_id: flowset_id,
             length: length
@@ -228,8 +230,8 @@ named!(parse_tl_header<&[u8], TypeLenHeader>, do_parse!(
 ));
 
 named!(parse_template_header<&[u8], TemplateHeader>, do_parse!(
-    template_id: bits!(take_bits!(u16, 16)) >>
-       field_count: bits!(take_bits!(u16, 16)) >>
+    template_id: bits!(take_bits!(16u16)) >>
+       field_count: bits!(take_bits!(16u16)) >>
         (TemplateHeader {
             template_id: template_id,
             field_count: field_count
@@ -237,8 +239,8 @@ named!(parse_template_header<&[u8], TemplateHeader>, do_parse!(
 ));
 
 named!(parse_template_fields<&[u8], TemplateField>, do_parse!(
-    field: bits!(take_bits!(u16, 16)) >>
-        len: bits!(take_bits!(u16, 16)) >>
+    field: bits!(take_bits!(16u16)) >>
+        len: bits!(take_bits!(16u16)) >>
         (TemplateField {
             field: field,
             len: len
@@ -246,9 +248,9 @@ named!(parse_template_fields<&[u8], TemplateField>, do_parse!(
 ));
 
 named!(parse_option_template_header<&[u8], OptionTemplateHeader>, do_parse!(
-    template_id: bits!(take_bits!(u16, 16)) >>
-        scope_len: bits!(take_bits!(u16, 16)) >>
-        option_len: bits!(take_bits!(u16, 16)) >>
+    template_id: bits!(take_bits!(16u16)) >>
+        scope_len: bits!(take_bits!(16u16)) >>
+        option_len: bits!(take_bits!(16u16)) >>
         (OptionTemplateHeader {
             template_id: template_id,
             scope_len: scope_len,
@@ -265,16 +267,16 @@ fn parse_template<'a>(
     // Keep parsed templates fields locally
     let mut template_fields: Vec<TemplateField> = Vec::new();
 
-    if let Done(bytes, template_header) = parse_template_header(buffer) {
+    if let Ok((bytes, template_header)) = parse_template_header(buffer) {
         // Keep a track of bytes to parse but the
         // "field_count" should be enough to parse it correctly
         byte_count -= buffer.len() - bytes.len();
         // Ensure the correct buffer is parsed
         buffer = bytes;
-        let mut field_count = template_header.field_count;
+        let field_count = template_header.field_count;
 
         for _ in 0..field_count {
-            if let Done(bytes, template_field) = parse_template_fields(buffer) {
+            if let Ok((bytes, template_field)) = parse_template_fields(buffer) {
                 byte_count -= buffer.len() - bytes.len();
                 buffer = bytes;
                 template_fields.push(template_field);
@@ -303,15 +305,15 @@ fn parse_options_template<'a>(
 ) -> Result<(&'a [u8], OptionTemplate), ()> {
     let mut template_fields: Vec<TemplateField> = Vec::new();
     let mut byte_count = 4; //Adjust for header length
-    if let Done(bytes, template_header) = parse_option_template_header(buffer) {
+    if let Ok((bytes, template_header)) = parse_option_template_header(buffer) {
         byte_count += buffer.len() - bytes.len();
         // Ensure the correct buffer is parsed
         buffer = bytes;
 
         // Parse first the scope fields
-        let mut scope_len = template_header.scope_len / 4; // len is in bytes we're parsing 2 x u16
+        let scope_len = template_header.scope_len / 4; // len is in bytes we're parsing 2 x u16
         for _ in 0..scope_len {
-            if let Done(bytes, template_field) = parse_template_fields(buffer) {
+            if let Ok((bytes, template_field)) = parse_template_fields(buffer) {
                 byte_count += buffer.len() - bytes.len();
                 buffer = bytes;
                 template_fields.push(template_field);
