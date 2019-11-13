@@ -74,10 +74,11 @@ impl<'a> DataFlowset<'a> {
             let ip: Vec<_> = ip.split(":").collect();
             json += format!("\"source\": \"{}\",", ip[0]).as_str();
         }
-        json += format!("\"flowset_id\": \"{}\",", self.tl_header.flowset_id).as_str();
+        json += format!("\"flowset_id\": \"{}\",", self.tl_header.flowset_id)
+            .as_str();
         json += format!("\"length\": \"{}\"", self.tl_header.length).as_str();
         json += "},\"records\": {";
-        for (k, mut v) in self.records {
+        for (k, v) in self.records {
             let record = TemplateFieldType::from(k);
             let parser = record.get_parser();
             json += format!("\"{}\": {},", record, parser(v)).as_str();
@@ -156,11 +157,15 @@ impl Parser {
                             {
                                 data = buffer;
                                 self.options_cache.insert(
-                                    template_flowset.options_template_header.template_id,
+                                    template_flowset
+                                        .options_template_header
+                                        .template_id,
                                     template_flowset,
                                 );
                             } else {
-                                return Err("Failed to parse the options template");
+                                return Err(
+                                    "Failed to parse the options template",
+                                );
                             }
                         }
 
@@ -170,9 +175,15 @@ impl Parser {
                                 return Err("Flowset ID out of range");
                             }
                             // Get the template fromthe cache
-                            if self.template_cache.contains_key(&tl_header.flowset_id) {
-                                let template =
-                                    { self.template_cache.get(&tl_header.flowset_id).unwrap() };
+                            if self
+                                .template_cache
+                                .contains_key(&tl_header.flowset_id)
+                            {
+                                let template = {
+                                    self.template_cache
+                                        .get(&tl_header.flowset_id)
+                                        .unwrap()
+                                };
                                 if let Ok((buffer, flowsets)) =
                                     parse_dataset(data, tl_header, &template)
                                 {
@@ -184,7 +195,10 @@ impl Parser {
                                 } else {
                                     return Err("Failed to parse the dataset");
                                 }
-                            } else if self.options_cache.contains_key(&tl_header.flowset_id) {
+                            } else if self
+                                .options_cache
+                                .contains_key(&tl_header.flowset_id)
+                            {
                                 data = &data[(tl_header.length - 4) as usize..];
                             } else {
                                 data = &data[(tl_header.length - 4) as usize..];
@@ -289,8 +303,8 @@ fn parse_template<'a>(
             return Ok((
                 buffer,
                 TemplateFlowset {
-                    tl_header: tl_header,
-                    template_header: template_header,
+                    tl_header,
+                    template_header,
                     payload: template_fields,
                 },
             ));
@@ -323,9 +337,9 @@ fn parse_options_template<'a>(
         }
 
         // ...then the option fields
-        let mut option_len = template_header.option_len / 4;
+        let option_len = template_header.option_len / 4;
         for _ in 0..option_len {
-            if let Done(bytes, template_field) = parse_template_fields(buffer) {
+            if let Ok((bytes, template_field)) = parse_template_fields(buffer) {
                 byte_count += buffer.len() - bytes.len();
                 buffer = bytes;
                 template_fields.push(template_field);
@@ -338,7 +352,7 @@ fn parse_options_template<'a>(
         return Ok((
             &buffer[tl_header.length as usize - byte_count..],
             OptionTemplate {
-                tl_header: tl_header,
+                tl_header,
                 options_template_header: template_header,
                 payload: template_fields,
             },
@@ -365,8 +379,8 @@ fn parse_dataset<'a>(
         }
         dataflows.push(DataFlowset {
             source_ip: None,
-            tl_header: tl_header,
-            records: records,
+            tl_header,
+            records,
         })
     }
     // Adjust for possible remaining padding
