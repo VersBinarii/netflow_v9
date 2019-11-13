@@ -5,7 +5,7 @@ It collects the flows and outputs each in a JSON format.
 ## Install
 In your Cargo.toml file:
 ```
-netflow_v9 = { git = "https://github.com/Caspinol/netflow_v9.git" }
+netflow_v9 = { git = "https://github.com/VersBinarii/netflow_v9.git" }
 ```
 
 ## Example
