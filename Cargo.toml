@@ -7,6 +7,7 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/VersBinarii/netflow_v9"
 keywords = ["netflow", "netflow-v9", "network"]
+description = "Library for parsing Netflow-v9 packets"
 
 [dependencies]
 nom = "5.0"
