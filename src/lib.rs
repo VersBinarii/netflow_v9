@@ -1,12 +1,11 @@
 #[macro_use]
 extern crate nom;
-extern crate byteorder;
 
 mod formaters;
 mod templates;
 
+use serde::Serialize;
 use std::collections::HashMap;
-use templates::TemplateFieldType;
 
 #[derive(Debug)]
 struct NetflowHeader {
@@ -18,7 +17,7 @@ struct NetflowHeader {
     source_id: u32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 struct TypeLenHeader {
     flowset_id: u16,
     length: u16,
@@ -57,41 +56,44 @@ struct OptionTemplate {
     payload: Vec<TemplateField>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DataFlowset<'a> {
-    source_ip: Option<&'a std::net::SocketAddr>,
+    source_ip: Option<&'a std::net::IpAddr>,
+    #[serde(rename = "header")]
     tl_header: TypeLenHeader,
+    #[serde(with = "resolve_hashmap")]
     records: HashMap<u16, &'a [u8]>,
 }
 
-impl<'a> DataFlowset<'a> {
-    pub fn to_json(self) -> String {
-        let mut json = String::new();
-        json += "{";
-        json += "\"header\": {";
-        if let Some(ip) = self.source_ip {
-            let ip = ip.to_string();
-            let ip: Vec<_> = ip.split(":").collect();
-            json += format!("\"source\": \"{}\",", ip[0]).as_str();
-        }
-        json += format!("\"flowset_id\": \"{}\",", self.tl_header.flowset_id)
-            .as_str();
-        json += format!("\"length\": \"{}\"", self.tl_header.length).as_str();
-        json += "},\"records\": {";
-        for (k, v) in self.records {
-            let record = TemplateFieldType::from(k);
+mod resolve_hashmap {
+    use crate::templates::TemplateFieldType;
+    use serde::ser::{self, SerializeMap};
+    use std::collections::HashMap;
+
+    pub fn serialize<'a, S>(
+        hash_map: &HashMap<u16, &'a [u8]>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(hash_map.len()))?;
+        for (k, v) in hash_map {
+            let record = TemplateFieldType::from(*k);
             let parser = record.get_parser();
-            json += format!("\"{}\": {},", record, parser(v)).as_str();
+            let p = parser(v);
+            map.serialize_entry(&record.to_string(), &p)?;
         }
-        if json.ends_with(',') {
-            let len = json.len();
-            json.truncate(len - 1);
-        }
-        json += "}}\n";
-        json
+        map.end()
+    }
+}
+
+impl<'a> DataFlowset<'a> {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(&self).unwrap()
     }
 
-    fn set_source_ip(&mut self, addr: &'a std::net::SocketAddr) {
+    fn set_source_ip(&mut self, addr: &'a std::net::IpAddr) {
         self.source_ip = Some(addr)
     }
 }
@@ -113,7 +115,7 @@ impl Parser {
     pub fn parse_netflow_packet<'a, 'b>(
         &'a mut self,
         packet: &'b [u8],
-        addr: &'b std::net::SocketAddr,
+        addr: &'b std::net::IpAddr,
     ) -> Result<Vec<DataFlowset<'b>>, &'static str> {
         //20 bytes Netflow packet header
         let mut data = packet;
