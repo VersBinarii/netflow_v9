@@ -71,8 +71,6 @@ mod tests {
             for set in sets {
                 let s = set.to_json();
 
-                println!("JSON: {}", serde_json::to_string(&set).unwrap());
-
                 assert!(s.contains("\"BGP IPv4 Next Hop\":\"185.167.196.126\""));
                 assert!(s.contains("\"IPv4 Src Addr\":\"185.167.196.127\""));
                 assert!(s.contains("\"ICMP type\":0"));
@@ -107,7 +105,7 @@ mod tests {
         if let Ok(sets) = parser.parse_netflow_packet(&packet_2, &addr) {
             for set in sets {
                 let s = set.to_json();
-                println!("{}", s);
+
                 assert!(s.contains("\"BGP IPv4 Next Hop\":\"0.0.0.0\""));
                 assert!(s.contains("\"Forwarding Status\":66"));
                 assert!(s.contains("\"IPv4 Next Hop\":\"0.0.0.0\""));
