@@ -1,4 +1,6 @@
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ByteOrder, ReadBytesExt};
+use serde::Serialize;
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 static TCP_FLAGS: [(u8, &str); 8] = [
     (0x01, "FIN"),
@@ -11,33 +13,42 @@ static TCP_FLAGS: [(u8, &str); 8] = [
     (0x08, "CWR"),
 ];
 
-pub fn fmt_ipv4(b: &[u8]) -> String {
-    format!(r#""{}.{}.{}.{}""#, b[0], b[1], b[2], b[3])
+#[derive(Debug)]
+pub enum FmtReturn {
+    Number(u64),
+    Text(String),
 }
 
-pub fn fmt_ipv6(b: &[u8]) -> String {
-    format!(
-        r#""{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}""#,
-        b[0],
-        b[1],
-        b[2],
-        b[3],
-        b[4],
-        b[5],
-        b[6],
-        b[7],
-        b[8],
-        b[9],
-        b[10],
-        b[11],
-        b[12],
-        b[13],
-        b[14],
-        b[15]
-    )
+impl Serialize for FmtReturn {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        match self {
+            FmtReturn::Number(n) => serializer.serialize_u64(*n),
+            FmtReturn::Text(t) => serializer.serialize_str(t),
+        }
+    }
 }
 
-pub fn fmt_int(mut b: &[u8]) -> String {
+impl std::fmt::Display for FmtReturn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FmtReturn::Number(n) => write!(f, "{}", n),
+            FmtReturn::Text(t) => write!(f, "{}", t),
+        }
+    }
+}
+
+pub fn fmt_ipv4(b: &[u8]) -> FmtReturn {
+    FmtReturn::Text(Ipv4Addr::new(b[0], b[1], b[2], b[3]).to_string())
+}
+
+pub fn fmt_ipv6(b: &[u8]) -> FmtReturn {
+    FmtReturn::Text(Ipv6Addr::from(BigEndian::read_u128(&b)).to_string())
+}
+
+pub fn fmt_int(mut b: &[u8]) -> FmtReturn {
     let val = match b.len() {
         1 => b[0] as u64,
         2 => {
@@ -64,10 +75,10 @@ pub fn fmt_int(mut b: &[u8]) -> String {
         _ => 0,
     };
 
-    format!("\"{}\"", val)
+    FmtReturn::Number(val)
 }
 
-pub fn fmt_tcp_flags(b: &[u8]) -> String {
+pub fn fmt_tcp_flags(b: &[u8]) -> FmtReturn {
     let mut res = String::new();
     for e in TCP_FLAGS.iter() {
         if b[0] & e.0 == e.0 {
@@ -83,5 +94,5 @@ pub fn fmt_tcp_flags(b: &[u8]) -> String {
         res.pop();
     }
 
-    format!("\"{}\"", res)
+    FmtReturn::Text(res)
 }
