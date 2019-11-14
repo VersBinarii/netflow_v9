@@ -302,10 +302,44 @@ impl From<u16> for TemplateFieldType {
             ),
             38 => TemplateFieldType::EngineType("Engine type", fmt_int),
             39 => TemplateFieldType::EngineID("Engine Id", fmt_int),
+            40 => TemplateFieldType::TotalBytesExp("Total bytes", fmt_int),
+            41 => TemplateFieldType::TotalPktsExp("Total packets", fmt_int),
+            42 => TemplateFieldType::TotalFlowsExp("Total flows", fmt_int),
 
+            44 => {
+                TemplateFieldType::IPv4SrcPrefix("IPv4 source prefix", fmt_ipv4)
+            }
+            45 => TemplateFieldType::IPv4DstPrefix(
+                "IPv4 destination prefix",
+                fmt_ipv4,
+            ),
+            46 => TemplateFieldType::MPLSTopLabelType(
+                "MPLS stop label type",
+                fmt_int,
+            ),
+            47 => TemplateFieldType::MPLSTopLabelIPAddr(
+                "MPLS stop label IP addr",
+                fmt_ipv4,
+            ),
+            48 => TemplateFieldType::FlowSamplerID("Sampler ID", fmt_int),
+            49 => TemplateFieldType::FlowSamplerMode(
+                "Sampling algorithm",
+                fmt_int,
+            ),
+            50 => TemplateFieldType::FlowSamplerRandomInterval(
+                "Packet sample rate interval",
+                fmt_int,
+            ),
             52 => TemplateFieldType::MinTTL("Min TTL", fmt_int),
             53 => TemplateFieldType::MaxTTL("Max TTL", fmt_int),
-
+            54 => TemplateFieldType::IPv4Ident("IPv4 identification", fmt_int),
+            56 => TemplateFieldType::InSrcMac("Incoming source MAC", fmt_int),
+            57 => TemplateFieldType::OutDstMac(
+                "Outgoing destination MAC",
+                fmt_int,
+            ),
+            58 => TemplateFieldType::SrcVLAN("Ingress interface VLAN", fmt_int),
+            59 => TemplateFieldType::DstVLAN("Egress interface VLAN", fmt_int),
             60 => TemplateFieldType::IPProtocolVersion(
                 "IP Proto version",
                 fmt_int,
@@ -319,6 +353,22 @@ impl From<u16> for TemplateFieldType {
                 "IPv6 Options header",
                 fmt_int,
             ),
+            70 => TemplateFieldType::MPLSLabel1("MPLS label 1", fmt_int),
+            71 => TemplateFieldType::MPLSLabel2("MPLS label 2", fmt_int),
+            72 => TemplateFieldType::MPLSLabel3("MPLS label 3", fmt_int),
+            73 => TemplateFieldType::MPLSLabel4("MPLS label 4", fmt_int),
+            74 => TemplateFieldType::MPLSLabel5("MPLS label 5", fmt_int),
+            75 => TemplateFieldType::MPLSLabel6("MPLS label 6", fmt_int),
+            76 => TemplateFieldType::MPLSLabel7("MPLS label 7", fmt_int),
+            77 => TemplateFieldType::MPLSLabel8("MPLS label 8", fmt_int),
+            78 => TemplateFieldType::MPLSLabel9("MPLS label 9", fmt_int),
+            79 => TemplateFieldType::MPLSLabel10("MPLS label 10", fmt_int),
+            80 => {
+                TemplateFieldType::InDstMAC("Incoming destination MAC", fmt_int)
+            }
+            81 => TemplateFieldType::OutSrcMAC("Outgoing source MAC", fmt_int),
+            82 => TemplateFieldType::IfName("Interface name", fmt_int),
+            83 => TemplateFieldType::IfDesc("Interface desctiption", fmt_int),
 
             89 => TemplateFieldType::ForwardingStatus(
                 "Forwarding Status",
