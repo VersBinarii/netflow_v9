@@ -277,7 +277,7 @@ named!(parse_option_template_header<&[u8], OptionTemplateHeader>, do_parse!(
 fn parse_template<'a>(
     mut buffer: &'a [u8],
     tl_header: TypeLenHeader,
-) -> Result<(&'a [u8], TemplateFlowset), ()> {
+) -> nom::IResult<&'a [u8], TemplateFlowset, ()> {
     // Adjust for TypeLenHeader size already parsed
     let mut byte_count = tl_header.length as usize - 4;
     // Keep parsed templates fields locally
@@ -297,7 +297,7 @@ fn parse_template<'a>(
                 buffer = bytes;
                 template_fields.push(template_field);
             } else {
-                return Err(());
+                return Err(nom::Err::Failure(()));
             }
         }
         if byte_count == 0 {
@@ -312,13 +312,13 @@ fn parse_template<'a>(
             ));
         }
     }
-    Err(())
+    Err(nom::Err::Error(()))
 }
 
 fn parse_options_template<'a>(
     mut buffer: &'a [u8],
     tl_header: TypeLenHeader,
-) -> Result<(&'a [u8], OptionTemplate), ()> {
+) -> nom::IResult<&'a [u8], OptionTemplate, ()> {
     let mut template_fields: Vec<TemplateField> = Vec::new();
     let mut byte_count = 4; //Adjust for header length
     if let Ok((bytes, template_header)) = parse_option_template_header(buffer) {
@@ -334,7 +334,7 @@ fn parse_options_template<'a>(
                 buffer = bytes;
                 template_fields.push(template_field);
             } else {
-                return Err(());
+                return Err(nom::Err::Failure(()));
             }
         }
 
@@ -346,7 +346,7 @@ fn parse_options_template<'a>(
                 buffer = bytes;
                 template_fields.push(template_field);
             } else {
-                return Err(());
+                return Err(nom::Err::Failure(()));
             }
         }
 
@@ -360,14 +360,14 @@ fn parse_options_template<'a>(
             },
         ));
     }
-    Err(())
+    Err(nom::Err::Error(()))
 }
 
 fn parse_dataset<'a>(
     buffer: &'a [u8],
     tl_header: TypeLenHeader,
     template: &TemplateFlowset,
-) -> Result<(&'a [u8], Vec<DataFlowset<'a>>), ()> {
+) -> nom::IResult<&'a [u8], Vec<DataFlowset<'a>>, ()> {
     let mut dataflows = Vec::new();
     let mut idx: usize = 0;
     let fields = &template.payload;
